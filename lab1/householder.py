@@ -1,38 +1,61 @@
 import numpy as np
 
-def HouseholderDecomposition(matrix: np.matrix) -> np.matrix | np.matrix:
-    rowCount =
-    columnCount = 
-    # columnCount < rowCount
+def HouseholderQrDecomposition(matrix: np.matrix) -> np.matrix | np.matrix:
+    rowCount, columnCount = matrix.shape
     rMatrix = matrix
     for iteration in range(0, columnCount):
-        '''
-        rows and columns of the matrix are numbered from 0.
-        Steps for i iteration:
+        subsize = rowCount - iteration
 
-        e = (1 0 ... 0)^T, dim(e) = rowCount - i
+        e = np.zeros(subsize)
+        e[0] = 1
 
-        x = (a_{i, i} ... a_{i, rowColumn - 1}), dim(x) = rowColumn - i
-        in other words, x is a vector created by elements on i-th column
-        which are on and under diagonal.
+        x = np.array([rMatrix[row, iteration] for row in range(iteration, rowCount)])
+        u0 = x + (1 if x[0] > 0 else -1) * np.linalg.norm(x) * e
+
+        u = u0 / np.linalg.norm(u0)
+        # prepare for transposing
+        u = u[np.newaxis]
+
+        HiPart = np.eye(subsize) - 2 * u * u.T
+	
+        Hi = mergeMatrices(np.eye(iteration), HiPart) if iteration > 0 else HiPart
+
+        rMatrix = np.matmul(Hi, rMatrix)
         
-        u_0 = x + sgn(x_0) * ||x||_2 * e, where sgn(x_0) is the sign
-        function, ||x||_2 is the euclidian norm.
+        if iteration == 0:
+            qMatrix = Hi
+        else:
+            qMatrix = np.matmul(Hi, qMatrix)
 
-        u = u_0 / ||u_0|| -- it's normalizing
+    return qMatrix, rMatrix
 
-        H_i' = E - 2 * u * u^T, where E is the identity matrix with size
-        (rowCount - i).
 
-        H_i =
-        |E   0  |
-        |0   H_i|
+def mergeMatrices(A, B):
+    # Получаем размеры матриц A и B
+    rowsA, columnsA = A.shape
+    rowsB, columnsB = B.shape
+    
+    # Размер новой матрицы: строки — это сумма строк A и B, столбцы — сумма столбцов A и B
+    mergedRows = rowsA + rowsB
+    mergedColumns = columnsA + columnsB
+    
+    # Создаем нулевую матрицу необходимого размера
+    mergedMatrix = np.zeros((mergedRows, mergedColumns), dtype=A.dtype)
+    
+    # Вставляем A в верхний левый угол
+    mergedMatrix[:rowsA, :columnsA] = A
+    
+    # Вставляем B, начиная с позиции (rowsA, columnsA)
+    mergedMatrix[rowsA:mergedRows, columnsA:mergedColumns] = B
+    
+    return mergedMatrix
 
-        R_i = (i == 0) ? H_0 * A : H_i * R_{i-1}
-        Q_i = (i == 0) ? H_0 : H_i * Q_{i-1}
-        
-        OUTPUT:
-        Q = Q_{rowCount-1}
-        R = R_{rowCount-1}
-        '''
-    return None, rMatrix
+A = np.array([[1, 2], [3, 4], [5, 6]])
+
+Q, R = HouseholderQrDecomposition(A)
+
+print("Q=")
+print(Q)
+print()
+print("R=")
+print(R)
