@@ -1,8 +1,9 @@
 import numpy as np
 
-def HouseholderQrDecomposition(matrix: np.matrix) -> np.matrix | np.matrix:
+def HouseholderQrDecomposition(matrix):
     rowCount, columnCount = matrix.shape
     rMatrix = matrix
+    print(columnCount)
     for iteration in range(0, columnCount):
         subsize = rowCount - iteration
 
@@ -18,7 +19,7 @@ def HouseholderQrDecomposition(matrix: np.matrix) -> np.matrix | np.matrix:
 
         HiPart = np.eye(subsize) - 2 * u * u.T
 	
-        Hi = mergeMatrices(np.eye(iteration), HiPart) if iteration > 0 else HiPart
+        Hi = MergeMatrices(np.eye(iteration), HiPart) if iteration > 0 else HiPart
 
         rMatrix = np.matmul(Hi, rMatrix)
         
@@ -30,7 +31,7 @@ def HouseholderQrDecomposition(matrix: np.matrix) -> np.matrix | np.matrix:
     return qMatrix, rMatrix
 
 
-def mergeMatrices(A, B):
+def MergeMatrices(A, B):
     # Получаем размеры матриц A и B
     rowsA, columnsA = A.shape
     rowsB, columnsB = B.shape
@@ -49,13 +50,3 @@ def mergeMatrices(A, B):
     mergedMatrix[rowsA:mergedRows, columnsA:mergedColumns] = B
     
     return mergedMatrix
-
-A = np.array([[1, 2], [3, 4], [5, 6]])
-
-Q, R = HouseholderQrDecomposition(A)
-
-print("Q=")
-print(Q)
-print()
-print("R=")
-print(R)
