@@ -2,31 +2,33 @@ import numpy as np
 
 def HouseholderQrDecomposition(matrix):
     rowCount, columnCount = matrix.shape
-    rMatrix = matrix
-    print(columnCount)
+    rMatrix = matrix.copy()
+    qMatrix = np.eye(rowCount)
+    
     for iteration in range(0, columnCount):
         subsize = rowCount - iteration
 
         e = np.zeros(subsize)
         e[0] = 1
 
-        x = np.array([rMatrix[row, iteration] for row in range(iteration, rowCount)])
-        u0 = x + (1 if x[0] > 0 else -1) * np.linalg.norm(x) * e
+        x = rMatrix[iteration:, iteration]
+
+        normX = np.linalg.norm(x)
+        if normX == 0:
+            raise Exception("Norm cannot be equal to 0")
+        
+        u0 = x + np.sign(x[0]) * normX * e
 
         u = u0 / np.linalg.norm(u0)
         # prepare for transposing
         u = u[np.newaxis]
 
-        HiPart = np.eye(subsize) - 2 * u * u.T
+        HiPart = np.eye(subsize) - 2 * np.outer(u, u)
 	
         Hi = MergeMatrices(np.eye(iteration), HiPart) if iteration > 0 else HiPart
 
-        rMatrix = np.matmul(Hi, rMatrix)
-        
-        if iteration == 0:
-            qMatrix = Hi
-        else:
-            qMatrix = np.matmul(Hi, qMatrix)
+        rMatrix = Hi @ rMatrix
+        qMatrix = qMatrix @ Hi.T
 
     return qMatrix, rMatrix
 

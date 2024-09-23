@@ -25,25 +25,26 @@ def ChebyshevPolynomial(value, count) -> np.array:
 def ChebyshevPolynomialMatrix(values, count) -> np.array:
     return np.array([ChebyshevPolynomial(v, count) for v in values])
 
-epsilon, sigma = ReadInput("2.txt")
+epsilon, sigma = ReadInput("lab1/2.txt")
 
-'''
+
 limit = 1500
 epsilon = epsilon[:limit]
 sigma = sigma[:limit]
-'''
 
-polynomialCount = 7
+
+polynomialCount = 4
 
 chebyshevMatrix = ChebyshevPolynomialMatrix(epsilon, polynomialCount)
 
 cond = np.linalg.cond(chebyshevMatrix)
 print(f'Conditional number of A: {cond}')
 
-coefficientsNormal = LeastSquares.NormalEquations(chebyshevMatrix, sigma)
-#coefficientsNormal = LeastSquares.QrDecomposition(chebyshevMatrix, sigma, Householder.HouseholderQrDecomposition)
+#coefficientsNormal = LeastSquares.NormalEquations(chebyshevMatrix, sigma)
+coefficientsNormal = LeastSquares.QrDecomposition(chebyshevMatrix, sigma, Householder.HouseholderQrDecomposition)
 
 print(coefficientsNormal)
+
 
 print('Epsilon\tSigma_e\tSigma_a\tDiff')
 for index in range(0, 200):
