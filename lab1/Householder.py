@@ -1,6 +1,6 @@
 import numpy as np
 
-def HouseholderQrDecomposition(matrix):
+def HouseholderQrDecomposition(matrix: np.matrix):
     rowCount, columnCount = matrix.shape
     rMatrix = matrix.copy()
     qMatrix = np.eye(rowCount)
@@ -23,12 +23,15 @@ def HouseholderQrDecomposition(matrix):
         # prepare for transposing
         u = u[np.newaxis]
 
+        #TODO tune multipling of (Hi * R) and (Q * Hi^T)
         HiPart = np.eye(subsize) - 2 * np.outer(u, u)
 	
         Hi = MergeMatrices(np.eye(iteration), HiPart) if iteration > 0 else HiPart
 
         rMatrix = Hi @ rMatrix
         qMatrix = qMatrix @ Hi.T
+
+    rMatrix = np.triu(rMatrix)
 
     return qMatrix, rMatrix
 
