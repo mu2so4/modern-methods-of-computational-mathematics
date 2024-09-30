@@ -2,8 +2,7 @@ import numpy as np
 
 def HouseholderQrDecomposition(matrix: np.matrix):
     rowCount, columnCount = matrix.shape
-    rMatrix = matrix.copy()
-    qMatrix = np.eye(rowCount)
+    R = matrix.copy()
     
     for iteration in range(0, columnCount):
         subsize = rowCount - iteration
@@ -11,7 +10,7 @@ def HouseholderQrDecomposition(matrix: np.matrix):
         e = np.zeros(subsize)
         e[0] = 1
 
-        x = rMatrix[iteration:, iteration]
+        x = R[iteration:, iteration]
 
         normX = np.linalg.norm(x)
         if normX == 0:
@@ -20,20 +19,21 @@ def HouseholderQrDecomposition(matrix: np.matrix):
         u0 = x + np.sign(x[0]) * normX * e
 
         u = u0 / np.linalg.norm(u0)
-        # prepare for transposing
-        u = u[np.newaxis]
 
         #TODO tune multipling of (Hi * R) and (Q * Hi^T)
         HiPart = np.eye(subsize) - 2 * np.outer(u, u)
 	
         Hi = MergeMatrices(np.eye(iteration), HiPart) if iteration > 0 else HiPart
 
-        rMatrix = Hi @ rMatrix
-        qMatrix = qMatrix @ Hi.T
+        R = Hi @ R
+        if iteration == 0:
+            QT = Hi
+        else:
+            QT = Hi @ QT
 
-    rMatrix = np.triu(rMatrix)
+    R = np.triu(R)
 
-    return qMatrix, rMatrix
+    return QT.T, R
 
 
 def MergeMatrices(A, B):

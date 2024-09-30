@@ -1,7 +1,11 @@
 import numpy as np
 import time
+from matplotlib import pyplot as plt
+import matplotlib.patches as patches
+import matplotlib.animation
 import LeastSquares
 import Householder
+import sys
 
 def ReadInput(filename) -> np.ndarray | np.ndarray:
     epsilonList = []
@@ -14,6 +18,11 @@ def ReadInput(filename) -> np.ndarray | np.ndarray:
     return np.array(epsilonList), np.array(sigmaList)
 
 def ChebyshevPolynomial(value, count) -> np.array:
+    if count == 0:
+        raise Exception("count must be greater than 0")
+    if count == 1:
+        return np.array([1])
+    
     arr = np.zeros(count)
     arr[0] = 1
     arr[1] = value
@@ -26,35 +35,70 @@ def ChebyshevPolynomial(value, count) -> np.array:
 def ChebyshevPolynomialMatrix(values, count) -> np.array:
     return np.array([ChebyshevPolynomial(v, count) for v in values])
 
+
+def plot_graphics(epsilon, sigma, approximation_data, n):
+    fig = plt.figure(figsize=(12,8), frameon=True)
+    plt.style.use('ggplot')
+    plt.rcParams["mathtext.fontset"] = "cm"
+    plt.rcParams["font.family"] = "Times New Roman"
+    plt.rcParams['font.size'] = 37
+    plt.rcParams['text.color'] = 'black'
+    plt.rcParams['xtick.color'] = 'black'
+    plt.rcParams['ytick.color'] = 'black'
+    plt.rcParams['axes.labelcolor'] = 'black'
+    ax = fig.add_subplot(111)    
+
+    ax.spines['bottom'].set_color('black')
+    ax.spines['top'].set_color('black')
+    ax.spines['right'].set_color('black')
+    ax.spines['left'].set_color('black')
+
+    ax.set(facecolor='w')
+    ax.grid('axis = "both"', color = 'gray')
+
+    ax.set_xlabel('$x$', labelpad = -10)
+    ax.set_ylabel('$y$', rotation = 0, labelpad = 20)
+
+    ax.plot(epsilon, sigma, color = 'blue', linestyle = '-', linewidth = 3, label='Data')
+    #ax.plot(w_obr, P_obr, color = 'red', linestyle = '-', label = 'Processed')
+    ax.plot(epsilon, approximation_data, color = 'red', linestyle = '-', linewidth = 2, label = 'Approximation with N = ' + str(n))
+    ax.legend(loc=4)
+
+    plt.show()
+
+def nrmse(expected, actual) -> float:
+    if len(expected) != len(actual):
+        raise Exception("must be the same size")
+    count = len(expected)
+    maxExp = max(expected)
+    squares = sum([(actual[i] - expected[i]) ** 2 for i in range(0, count)])
+    return np.sqrt(squares / count) / maxExp
+
+filename = sys.argv[0]
+polynomialCount = int(sys.argv[1])
+
 epsilon, sigma = ReadInput("lab1/2.txt")
-
-
-limit = 2000
-epsilon = epsilon[:limit]
-sigma = sigma[:limit]
-
-
-polynomialCount = 6
 
 chebyshevMatrix = ChebyshevPolynomialMatrix(epsilon, polynomialCount)
 
 cond = np.linalg.cond(chebyshevMatrix)
-print(f'Conditional number of A: {cond}')
+#print(f'Conditional number of A: {cond}')
 
-startTime = time.process_time()
+
+startTime = time.time()
 #coefficients = LeastSquares.NormalEquations(chebyshevMatrix, sigma)
 coefficients = LeastSquares.QrDecomposition(chebyshevMatrix, sigma, Householder.HouseholderQrDecomposition)
-endTime = time.process_time()
+endTime = time.time()
 
-print(f'elapsed time {endTime - startTime} s')
-print(coefficients)
+print('elapsed time {:.2e} s'.format((endTime - startTime) / 4))
+#print(coefficients)
 
-'''
-print('Epsilon\tSigma_e\tSigma_a\tDiff')
-for index in range(0, 10):
-    currentEpsilon = epsilon[index]
-    currentSigmaExpected = sigma[index]
-    currentSigmaActual = np.polynomial.chebyshev.chebval(currentEpsilon, coefficients)
-    diff = currentSigmaActual - currentSigmaExpected
-    print(f'{currentEpsilon}\t{currentSigmaExpected}\t{currentSigmaActual}\t{diff}')
-'''
+apprSigma = [np.polynomial.chebyshev.chebval(eps, coefficients) for eps in epsilon]
+
+mse = nrmse(sigma, apprSigma)
+
+print("mu(AA^T)\tmu(A)\tMSE")
+print('{:.2e}\t{:.2e}\t{:.2e}'.format(cond * cond, cond, mse))
+
+#plot_graphics(epsilon, sigma, apprSigma, polynomialCount)
+
