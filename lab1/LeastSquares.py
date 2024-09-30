@@ -6,13 +6,9 @@ def NormalEquations(matrix, b) -> np.array:
     transposed = matrix.T
     # the solution is x = (A^T A)^-1 A^T b
     matProd = transposed @ matrix
-    choleskyLower = cholesky(matProd, lower=True)
 
-    # solve the system Cy=b', C^T x=y, where C is a lower triangular Cholesky matrix, b'=C^T b
     bConverted = transposed @ b
-    y = solve_triangular(choleskyLower, bConverted, lower=True)
-    x = solve_triangular(choleskyLower.T, y, lower=False)
-    return x
+    return np.linalg.solve(matProd, bConverted)
 
 
 def QrDecomposition(matrix, b, DecomposeQR) -> np.array:

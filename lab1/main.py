@@ -87,7 +87,7 @@ coefficients = LeastSquares.NormalEquations(chebyshevMatrix, sigma)
 #coefficients = LeastSquares.QrDecomposition(chebyshevMatrix, sigma, Householder.HouseholderQrDecomposition)
 endTime = time.time()
 
-#print('elapsed time {:.2e} s'.format((endTime - startTime) / 4))
+print('elapsed time {:.2e} s'.format(endTime - startTime))
 #print(coefficients)
 
 apprSigma = [np.polynomial.chebyshev.chebval(eps, coefficients) for eps in epsilon]
@@ -97,5 +97,5 @@ mse = nrmse(sigma, apprSigma)
 print("mu(AA^T)\tmu(A)\tMSE")
 print('{:.2e}\t{:.2e}\t{:.2e}'.format(cond * cond, cond, mse))
 
-plot_graphics(epsilon, sigma, apprSigma, polynomialCount)
+#plot_graphics(epsilon, sigma, apprSigma, polynomialCount)
 
