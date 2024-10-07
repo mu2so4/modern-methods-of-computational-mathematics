@@ -1,5 +1,5 @@
 import numpy as np
-from scipy.linalg import cholesky, solve_triangular
+from scipy.linalg import solve_triangular
 
 
 def NormalEquations(matrix, b) -> np.array:

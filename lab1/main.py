@@ -71,6 +71,10 @@ def nrmse(expected, actual) -> float:
     squares = sum([(actual[i] - expected[i]) ** 2 for i in range(0, count)])
     return np.sqrt(squares / count) / maxExp
 
+if(len(sys.argv) != 3):
+    print("Usage: {} filename N".format(sys.argv[0]))
+    exit(1)
+
 filename = sys.argv[1]
 polynomialCount = int(sys.argv[2])
 

@@ -3,6 +3,7 @@ import numpy as np
 def HouseholderQrDecomposition(matrix: np.matrix):
     rowCount, columnCount = matrix.shape
     R = matrix.copy()
+    reflections = []
     
     for iteration in range(0, columnCount):
         subsize = rowCount - iteration
@@ -19,39 +20,19 @@ def HouseholderQrDecomposition(matrix: np.matrix):
         u0 = x + np.sign(x[0]) * normX * e
 
         u = u0 / np.linalg.norm(u0)
+        u = u[np.newaxis]
 
-        #TODO tune multipling of (Hi * R) and (Q * Hi^T)
-        HiPart = np.eye(subsize) - 2 * np.outer(u, u)
-	
-        Hi = MergeMatrices(np.eye(iteration), HiPart) if iteration > 0 else HiPart
-
-        R = Hi @ R
-        if iteration == 0:
-            QT = Hi
-        else:
-            QT = Hi @ QT
+        UpdateR(R, u, iteration)
+        reflections.append(u)
 
     R = np.triu(R)
+    Q = np.eye(rowCount)
+    for i, u in reversed(list(enumerate(reflections))):
+        UpdateR(Q, u, i)
 
-    return QT.T, R
+    return Q, R
 
-
-def MergeMatrices(A, B):
-    # Получаем размеры матриц A и B
-    rowsA, columnsA = A.shape
-    rowsB, columnsB = B.shape
-    
-    # Размер новой матрицы: строки — это сумма строк A и B, столбцы — сумма столбцов A и B
-    mergedRows = rowsA + rowsB
-    mergedColumns = columnsA + columnsB
-    
-    # Создаем нулевую матрицу необходимого размера
-    mergedMatrix = np.zeros((mergedRows, mergedColumns), dtype=A.dtype)
-    
-    # Вставляем A в верхний левый угол
-    mergedMatrix[:rowsA, :columnsA] = A
-    
-    # Вставляем B, начиная с позиции (rowsA, columnsA)
-    mergedMatrix[rowsA:mergedRows, columnsA:mergedColumns] = B
-    
-    return mergedMatrix
+def UpdateR(M, u, iteration):
+    Mt = M[iteration:, iteration:]
+    M[iteration:, iteration:] = Mt - (2 * u.T) @ (u @ Mt)
+    pass
